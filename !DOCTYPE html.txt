@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 뭐 먹지? | 레시피 큐레이터</title>
+    <style>
+        :root {
+            --baemin-cyan: #2AC1BC;
+            --bg-gray: #F6F6F6;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--white);
+            min-height: 90vh;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Area */
+        header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        header h1 {
+            color: var(--baemin-cyan);
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        /* Category Tabs */
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 20px;
+            background: #fff;
+        }
+
+        .category-btn {
+            border: 1px solid #e2e2e2;
+            background: white;
+            padding: 12px 5px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .category-btn:hover {
+            border-color: var(--baemin-cyan);
+            color: var(--baemin-cyan);
+        }
+
+        .category-btn.active {
+            background: var(--baemin-cyan);
+            color: white;
+            border-color: var(--baemin-cyan);
+        }
+
+        /* Result Card */
+        #result-area {
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .menu-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .menu-name {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .menu-meta {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .meta-item {
+            font-size: 14px;
+            color: var(--text-sub);
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        /* Recipe Details */
+        .section-title {
+            text-align: left;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 20px 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ingredient-tag {
+            display: inline-block;
+            background: #eefaf9;
+            color: #444;
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-right: 6px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .step-list {
+            text-align: left;
+            list-style: none;
+        }
+
+        .step-item {
+            padding: 15px;
+            border-bottom: 1px solid #f9f9f9;
+            cursor: pointer;
+            display: flex;
+            gap: 12px;
+            transition: 0.2s;
+        }
+
+        .step-item:last-child { border-bottom: none; }
+
+        .step-number {
+            background: var(--baemin-cyan);
+            color: white;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .step-text {
+            line-height: 1.5;
+            font-size: 15px;
+        }
+
+        .step-item.completed {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
+        .placeholder {
+            color: #ccc;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        .footer-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 18px;
+            background: var(--baemin-cyan);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>배달 말고, 요리!</h1>
+    </header>
+
+    <nav class="categories">
+        <button class="category-btn" onclick="selectCategory('한식', this)">한식</button>
+        <button class="category-btn" onclick="selectCategory('일식', this)">일식</button>
+        <button class="category-btn" onclick="selectCategory('중식', this)">중식</button>
+        <button class="category-btn" onclick="selectCategory('양식', this)">양식</button>
+    </nav>
+
+    <main id="result-area">
+        <div class="placeholder">카테고리를 선택하면<br>맛있는 레시피를 추천해 드려요!</div>
+    </main>
+</div>
+
+<script>
+    const menuData = {
+        '한식': [
+            { name: "김치찌개", level: "하", time: "20분", ingredients: ["김치", "돼지고기", "두부", "대파"], steps: ["고기를 냄비에 볶아주세요.", "김치를 넣고 함께 3분간 볶습니다.", "물을 붓고 끓이다가 두부와 대파를 넣으세요."] },
+            { name: "비빔밥", level: "중", time: "30분", ingredients: ["밥", "콩나물", "애호박", "고추장", "계란"], steps: ["채소들을 각각 데치거나 볶아주세요.", "계란 후라이를 반숙으로 만듭니다.", "밥 위에 재료를 올리고 고추장과 참기름을 곁들입니다."] },
+            { name: "제육볶음", level: "중", time: "25분", ingredients: ["돼지불고기용 고기", "양파", "고추장 양념"], steps: ["고기에 양념을 재워 20분간 둡니다.", "강불에 고기를 빠르게 볶아 불향을 냅니다.", "양파와 대파를 넣고 숨이 죽을 때까지 볶아 마무리합니다."] }
+        ],
+        '일식': [
+            { name: "규동", level: "하", time: "15분", ingredients: ["우삼겹", "양파", "쯔유", "계란"], steps: ["팬에 쯔유와 물, 양파를 넣고 끓입니다.", "양파가 익으면 고기를 넣고 익혀줍니다.", "밥 위에 올린 뒤 노른자를 얹어 완성합니다."] },
+            { name: "돈카츠", level: "상", time: "50분", ingredients: ["돼지등심", "빵가루", "밀가루", "계란"], steps: ["고기를 두드려 연하게 만든 뒤 소금간을 합니다.", "밀가루-계란-빵가루 순으로 옷을 입힙니다.", "180도 기름에 노릇하게 두 번 튀겨냅니다."] }
+        ],
+        '중식': [
+            { name: "마파두부", level: "중", time: "20분", ingredients: ["두부", "다진 돼지고기", "두반장", "전분물"], steps: ["파기름을 내고 다진 고기를 볶습니다.", "두반장과 물을 넣어 끓인 뒤 두부를 넣습니다.", "전분물을 조금씩 부어가며 농도를 맞춥니다."] },
+            { name: "토마토달걀볶음", level: "하", time: "10분", ingredients: ["토마토", "달걀", "굴소스", "대파"], steps: ["달걀을 스크램블하여 따로 덜어둡니다.", "토마토를 볶아 즙이 나오게 합니다.", "달걀을 다시 넣고 굴소스로 간을 하며 섞어줍니다."] }
+        ],
+        '양식': [
+            { name: "알리오올리오", level: "하", time: "15분", ingredients: ["파스타면", "마늘", "페페론치노", "올리브유"], steps: ["마늘을 편으로 썰어 올리브유에 노릇하게 굽습니다.", "삶은 면과 면수를 한 국자 넣어 볶습니다.", "유화가 되도록 팬을 흔들며 간을 맞춥니다."] },
+            { name: "스테이크", level: "중", time: "25분", ingredients: ["소고기(채끝)", "버터", "로즈마리", "마늘"], steps: ["고기의 물기를 닦고 소금, 후추로 밑간합니다.", "팬을 뜨겁게 달궈 고기 겉면을 시어링합니다.", "버터와 마늘을 넣어 향을 입히며 익힙니다."] }
+        ]
+    };
+
+    function selectCategory(category, btn) {
+        // 버튼 활성화 스타일 제어
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // 랜덤 메뉴 추출
+        const menus = menuData[category];
+        const selected = menus[Math.floor(Math.random() * menus.length)];
+
+        // 결과 화면 구성
+        const resultArea = document.getElementById('result-area');
+        resultArea.innerHTML = `
+            <div class="menu-card">
+                <div class="menu-meta">
+                    <span class="meta-item">🔥 난이도: ${selected.level}</span>
+                    <span class="meta-item">⏰ 시간: ${selected.time}</span>
+                </div>
+                <h2 class="menu-name">${selected.name}</h2>
+                
+                <div class="section-title">📦 준비 재료</div>
+                <div style="text-align: left;">
+                    ${selected.ingredients.map(ing => `<span class="ingredient-tag">${ing}</span>`).join('')}
+                </div>
+
+                <div class="section-title">🍳 조리 순서</div>
+                <ul class="step-list">
+                    ${selected.steps.map((step, index) => `
+                        <li class="step-item" onclick="this.classList.toggle('completed')">
+                            <span class="step-number">${index + 1}</span>
+                            <span class="step-text">${step}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+
+                <button class="footer-btn" onclick="reRoll('${category}')">다른 메뉴 추천받기</button>
+            </div>
+        `;
+    }
+
+    function reRoll(category) {
+        const btn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.innerText === category);
+        selectCategory(category, btn);
+    }
+</script>
+
+</body>
+</html>
