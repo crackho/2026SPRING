@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고려대 안암동 편의지도 (오픈소스 버전)</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; font-family: 'Malgun Gothic', sans-serif; }
+        #header { background: #8a1538; color: white; padding: 15px; text-align: center; }
+        
+        #category-menu { padding: 10px; text-align: center; background: #f4f4f4; overflow-x: auto; white-space: nowrap; }
+        button.cat-btn { padding: 8px 15px; margin: 5px; cursor: pointer; border-radius: 20px; border: 1px solid #ccc; background: white; font-weight: bold; }
+        button.cat-btn:hover { background: #eee; }
+        
+        #map { width: 100%; height: 75vh; }
+        
+        #upload-btn { 
+            position: fixed; bottom: 30px; right: 20px; padding: 15px 20px; 
+            background: #ffc107; color: black; border: none; border-radius: 30px; 
+            cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000;
+        }
+
+        #modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; }
+        #modal-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; width: 300px; }
+        #modal-box h3 { margin-top: 0; color: #8a1538; }
+        #modal-box input, #modal-box select { width: 100%; padding: 8px; margin: 10px 0; box-sizing: border-box; }
+        .close-btn, .submit-btn { padding: 10px; width: 48%; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .close-btn { background: #ccc; }
+        .submit-btn { background: #8a1538; color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <h2>📍 고대생 참여형 편의지도</h2>
+    </div>
+
+    <div id="category-menu">
+        <button class="cat-btn" onclick="filterCategory('all')">🌐 전체 보기</button>
+        <button class="cat-btn" onclick="filterCategory('study')">📖 자습/열람실</button>
+        <button class="cat-btn" onclick="filterCategory('store')">🏪 편의점</button>
+        <button class="cat-btn" onclick="filterCategory('toilet')">🚽 화장실</button>
+        <button class="cat-btn" onclick="filterCategory('lostfound')">🌂 치안/분실물</button>
+    </div>
+
+    <div id="map"></div>
+
+    <button id="upload-btn" onclick="openModal()">📸 새로운 장소 추가하기</button>
+
+    <div id="modal-bg">
+        <div id="modal-box">
+            <h3>새로운 편의시설 제보</h3>
+            <p style="font-size: 12px; color: gray;">현재 지도 중심 위치에 마커가 추가됩니다.</p>
+            
+            <label>분류</label>
+            <select id="new-category">
+                <option value="store">편의점</option>
+                <option value="toilet">공중화장실</option>
+                <option value="lostfound">분실물/치안</option>
+                <option value="study">자습공간</option>
+            </select>
+            
+            <label>장소 이름</label>
+            <input type="text" id="new-name" placeholder="예: 법학관 1층 화장실">
+
+            <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                <button class="close-btn" onclick="closeModal()">취소</button>
+                <button class="submit-btn" onclick="addNewPlace()">추가하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. 오픈스트리트맵 지도 생성 (안암역 기준)
+        var map = L.map('map').setView([37.586296, 127.029137], 16);
+
+        // 무료 지도 타일 불러오기
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // 2. 초기 데이터
+        var places = [
+            { category: 'study', name: '고려대학교 중앙광장', lat: 37.588506, lng: 127.033767 },
+            { category: 'study', name: '고려대학교 과학도서관', lat: 37.584568, lng: 127.026550 },
+            { category: 'study', name: '고려대학교 하나스퀘어', lat: 37.584616, lng: 127.025353 },
+            { category: 'store', name: 'CU 안암역점', lat: 37.586470, lng: 127.029995 },
+            { category: 'store', name: 'GS25 고대타운점', lat: 37.585311, lng: 127.029852 },
+            { category: 'toilet', name: '안암동오거리 공중화장실', lat: 37.583033, lng: 127.029158 },
+            { category: 'lostfound', name: '안암지구대', lat: 37.586699, lng: 127.016604 }
+        ];
+
+        var markers = [];
+
+        // 3. 마커 찍는 함수
+        function createMarker(place) {
+            // Leaflet 마커 생성 및 팝업(말풍선) 연결
+            var marker = L.marker([place.lat, place.lng]).bindPopup('<b>' + place.name + '</b>');
+            marker.category = place.category;
+            marker.addTo(map);
+            markers.push(marker);
+        }
+
+        // 초기 데이터 지도에 렌더링
+        places.forEach(createMarker);
+
+        // 4. 카테고리 필터링 함수
+        function filterCategory(type) {
+            markers.forEach(function(marker) {
+                if (type === 'all' || marker.category === type) {
+                    if (!map.hasLayer(marker)) map.addLayer(marker);
+                } else {
+                    if (map.hasLayer(marker)) map.removeLayer(marker);
+                }
+            });
+        }
+
+        // 5. 모달창 열고 닫기
+        function openModal() { document.getElementById('modal-bg').style.display = 'block'; }
+        function closeModal() { document.getElementById('modal-bg').style.display = 'none'; }
+
+        // 6. 새로운 장소 추가
+        function addNewPlace() {
+            var cat = document.getElementById('new-category').value;
+            var name = document.getElementById('new-name').value;
+            
+            if(!name) { alert("장소 이름을 입력해주세요!"); return; }
+
+            // 현재 지도 중앙 좌표 가져오기
+            var center = map.getCenter();
+            var newPlace = { category: cat, name: name + " (신규)", lat: center.lat, lng: center.lng };
+            
+            createMarker(newPlace); // 지도에 추가
+            
+            alert("제보해주셔서 감사합니다! 지도에 추가되었습니다.");
+            closeModal();
+            document.getElementById('new-name').value = "";
+        }
+    </script>
+</body>
+</html>
