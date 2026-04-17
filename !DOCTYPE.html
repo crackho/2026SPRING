@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배민 레시피 | 냉장고 파먹기</title>
+    <style>
+        :root {
+            --baemin-cyan: #2AC1BC;
+            --bg-gray: #F6F6F6;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --white: #FFFFFF;
+            --point-orange: #ff5e00;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
+        body { background-color: var(--bg-gray); color: var(--text-main); display: flex; justify-content: center; padding: 20px; }
+        
+        .container {
+            width: 100%; max-width: 480px; background: var(--white); min-height: 90vh;
+            border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        header { padding: 25px 20px; text-align: center; border-bottom: 1px solid #eeeeee; }
+        header h1 { color: var(--baemin-cyan); font-size: 22px; font-weight: 800; }
+
+        /* 냉장고 입력 섹션 */
+        .fridge-section {
+            padding: 20px; background: #eefaf9; border-bottom: 1px solid #d1edec;
+        }
+        .fridge-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #444; }
+        .input-group { display: flex; gap: 8px; }
+        input {
+            flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;
+        }
+        input:focus { border-color: var(--baemin-cyan); }
+        .search-btn {
+            background: var(--baemin-cyan); color: white; border: none; 
+            padding: 0 15px; border-radius: 10px; cursor: pointer; font-weight: 700;
+        }
+
+        .categories { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 15px 20px; }
+        .category-btn {
+            border: 1px solid #eee; background: white; padding: 10px 5px;
+            border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+        }
+        .category-btn.active { background: var(--baemin-cyan); color: white; border-color: var(--baemin-cyan); }
+
+        #result-area { padding: 20px; flex-grow: 1; }
+        .menu-card { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 20px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .menu-name { font-size: 24px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+        .menu-meta { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .meta-item { font-size: 12px; color: var(--text-sub); background: #f0f0f0; padding: 4px 10px; border-radius: 15px; }
+        
+        .section-title { font-size: 16px; font-weight: 700; margin: 15px 0 8px 0; border-left: 4px solid var(--baemin-cyan); padding-left: 8px; }
+        .ingredient-tag { display: inline-block; background: #f8f8f8; padding: 5px 10px; border-radius: 5px; margin: 0 4px 6px 0; font-size: 13px; }
+        .match { color: var(--point-orange); font-weight: 700; border: 1px solid var(--point-orange); }
+
+        .step-list { list-style: none; margin-top: 10px; }
+        .step-item { padding: 12px 0; border-bottom: 1px solid #f5f5f5; cursor: pointer; display: flex; gap: 10px; }
+        .step-number { color: var(--baemin-cyan); font-weight: 800; flex-shrink: 0; }
+        .step-item.completed { opacity: 0.3; text-decoration: line-through; }
+
+        .empty-msg { text-align: center; color: #999; padding-top: 50px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>무엇을 도와드릴까요?</h1>
+    </header>
+
+    <div class="fridge-section">
+        <div class="fridge-title">🛒 남은 재료로 요리하기</div>
+        <div class="input-group">
+            <input type="text" id="fridge-input" placeholder="예: 김치, 고기, 두부 (쉼표로 구분)">
+            <button class="search-btn" onclick="searchByIngredients()">찾기</button>
+        </div>
+    </div>
+
+    <nav class="categories">
+        <button class="category-btn" onclick="selectCategory('한식', this)">한식</button>
+        <button class="category-btn" onclick="selectCategory('일식', this)">일식</button>
+        <button class="category-btn" onclick="selectCategory('중식', this)">중식</button>
+        <button class="category-btn" onclick="selectCategory('양식', this)">양식</button>
+    </nav>
+
+    <main id="result-area">
+        <div class="empty-msg">재료를 입력하거나<br>카테고리를 선택해 보세요!</div>
+    </main>
+</div>
+
+<script>
+    const allMenus = [
+        { cat: '한식', name: "김치찌개", level: "하", time: "20분", ingredients: ["김치", "돼지고기", "두부", "대파"], steps: ["고기를 냄비에 볶으세요.", "김치를 넣고 함께 볶습니다.", "물을 붓고 끓이다 두부를 넣으세요."] },
+        { cat: '한식', name: "제육볶음", level: "중", time: "25분", ingredients: ["고기", "양파", "고추장", "마늘"], steps: ["고기를 양념에 재웁니다.", "팬에 기름을 두르고 고기를 볶습니다.", "야채를 넣고 강불에 빠르게 마무리합니다."] },
+        { cat: '일식', name: "규동", level: "하", time: "15분", ingredients: ["고기", "양파", "간장", "계란"], steps: ["양파와 간장소스를 끓입니다.", "고기를 넣고 익을 때까지 졸입니다.", "밥 위에 올리고 노른자를 얹습니다."] },
+        { cat: '중식', name: "마파두부", level: "중", time: "20분", ingredients: ["두부", "고기", "고추기름", "전분"], steps: ["고기를 고추기름에 볶습니다.", "두부와 소스를 넣고 끓입니다.", "전분물로 농도를 맞춥니다."] },
+        { cat: '양식', name: "알리오올리오", level: "하", time: "15분", ingredients: ["면", "마늘", "올리브유", "고추"], steps: ["마늘을 올리브유에 볶습니다.", "삶은 면을 넣고 면수와 섞습니다.", "소금으로 간을 하고 마무리합니다."] },
+        { cat: '양식', name: "스테이크", level: "중", time: "25분", ingredients: ["고기", "버터", "마늘", "허브"], steps: ["팬을 달궈 고기 겉면을 익힙니다.", "버터와 마늘향을 입힙니다.", "원하는 굽기로 익혀 레스팅합니다."] }
+    ];
+
+    function renderMenu(menu, userIngredients = []) {
+        const resultArea = document.getElementById('result-area');
+        resultArea.innerHTML = `
+            <div class="menu-card">
+                <div class="menu-meta">
+                    <span class="meta-item">⭐ 난이도: ${menu.level}</span>
+                    <span class="meta-item">⏰ 시간: ${menu.time}</span>
+                </div>
+                <h2 class="menu-name">${menu.name}</h2>
+                <div class="section-title">재료 (주황색은 내 재료)</div>
+                <div>
+                    ${menu.ingredients.map(ing => {
+                        const isMatch = userIngredients.some(ui => ing.includes(ui.trim()));
+                        return `<span class="ingredient-tag ${isMatch ? 'match' : ''}">${ing}</span>`;
+                    }).join('')}
+                </div>
+                <div class="section-title">레시피 (순서를 클릭해 체크!)</div>
+                <ul class="step-list">
+                    ${menu.steps.map((s, i) => `
+                        <li class="step-item" onclick="this.classList.toggle('completed')">
+                            <span class="step-number">${i+1}</span>
+                            <span>${s}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    function selectCategory(cat, btn) {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filtered = allMenus.filter(m => m.cat === cat);
+        const random = filtered[Math.floor(Math.random() * filtered.length)];
+        renderMenu(random);
+    }
+
+    function searchByIngredients() {
+        const input = document.getElementById('fridge-input').value;
+        if (!input.trim()) { alert("재료를 입력해주세요!"); return; }
+
+        const userIngs = input.split(',').map(s => s.trim());
+        
+        // 재료가 가장 많이 겹치는 순으로 정렬
+        const matches = allMenus.map(menu => {
+            const matchCount = menu.ingredients.filter(mi => userIngs.some(ui => mi.includes(ui))).length;
+            return { ...menu, matchCount };
+        }).sort((a, b) => b.matchCount - a.matchCount);
+
+        if (matches[0].matchCount === 0) {
+            document.getElementById('result-area').innerHTML = `<div class="empty-msg">아쉽게도 해당 재료로 만들 수 있는<br>추천 메뉴가 없습니다. 😢</div>`;
+        } else {
+            renderMenu(matches[0], userIngs);
+        }
+    }
+</script>
+</body>
+</html>
