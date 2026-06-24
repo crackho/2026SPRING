@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 냉장고 파먹기 - 레시피 북</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #f4f4f9;
+            --text-color: #333;
+            --border-color: #ddd;
+            --accent-color: #ff9800;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* 상단 로그인 상태 바 */
+        .auth-bar {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            text-align: right;
+            font-size: 0.85rem;
+        }
+        .auth-bar button {
+            background: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 2px 8px;
+            margin-left: 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            background: #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav a {
+            color: white;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            background-color: var(--primary-color);
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .section {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        input[type="text"], input[type="password"], textarea, input[type="file"], select {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0 1rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .result-box, .list-box {
+            background: #f9f9f9;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .recipe-link {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid #c8e6c9;
+            transition: all 0.2s ease;
+        }
+        .recipe-link:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* 추천/별점 메트릭 스타일 */
+        .recipe-metric {
+            font-size: 0.8rem;
+            color: #666;
+            margin-left: 5px;
+            font-weight: normal;
+        }
+
+        .category-block {
+            margin-bottom: 1.5rem;
+        }
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 0.5rem;
+            background: #eee;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .recipe-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .comment {
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.8rem 0;
+        }
+
+        /* 경고 알림 박스 */
+        .auth-notice {
+            background-color: #fff3e0;
+            border-left: 4px solid var(--accent-color);
+            color: #e65100;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* 상호작용 버튼들 */
+        .interaction-box {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 1.5rem 0;
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        .btn-upvote {
+            background-color: #2196F3;
+        }
+        .btn-upvote:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-bar" id="top-auth-bar">
+        </div>
+
+    <header>
+        <h1>🍳 냉장고 파먹기 레시피 북</h1>
+        <p>냉장고 속 재료로 마법 같은 요리를 찾아보세요!</p>
+    </header>
+
+    <nav>
+        <a href="#auth-section">👤 회원공간</a>
+        <a href="#ai-scan">1. AI 스캔</a>
+        <a href="#all-recipes">2. 전체 레시피</a>
+        <a href="#search-recipe">3. 재료 검색</a>
+        <a href="#recipe-detail">4. 레시피 상세</a>
+        <a href="#add-recipe">5. 레시피 등록</a>
+    </nav>
+
+    <main>
+
+        <section id="auth-section" class="section">
+            <h2>👤 회원 관람 및 관리 공간</h2>
+            <div id="auth-forms-container">
+                <p style="color:#666;">로그인하시면 레시피 등록, 추천, 별점 평가 참여가 가능합니다! (비회원은 조회/검색만 가능)</p>
+                <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem;">
+                    <div style="flex: 1; min-width: 280px; border-right: 1px solid #eee; padding-right: 1.5rem;">
+                        <h3>🔑 로그인</h3>
+                        <form onsubmit="handleLogin(event)">
+                            <label>아이디</label>
+                            <input type="text" id="login-id" placeholder="테스트용: user1" required>
+                            <label>비밀번호</label>
+                            <input type="password" id="login-pw" placeholder="테스트용: 1234" required>
+                            <button type="submit">로그인</button>
+                        </form>
+                    </div>
+                    <div style="flex: 1; min-width: 280px;">
+                        <h3>📝 회원가입</h3>
+                        <form onsubmit="handleSignup(event)">
+                            <label>아이디</label>
+                            <input type="text" id="join-id" placeholder="사용할 아이디" required>
+                            <label>닉네임 (활동명)</label>
+                            <input type="text" id="join-nickname" placeholder="예) 요리왕비룡" required>
+                            <label>비밀번호</label>
+                            <input type="password" id="join-pw" placeholder="비밀번호" required>
+                            <button type="submit" style="background-color: var(--accent-color);">가입하기</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="auth-welcome-container" style="display: none;">
+                </div>
+        </section>
+
+        <section id="ai-scan" class="section">
+            <h2>📸 1. AI 냉장고 스캔</h2>
+            <p>냉장고 안의 사진을 업로드하면 AI가 재료를 분석해 요리를 추천합니다.</p>
+            <form onsubmit="event.preventDefault(); alert('AI가 사진을 분석 중입니다... (백엔드 연동 필요)');">
+                <label for="fridge-image">냉장고 사진 업로드:</label>
+                <input type="file" id="fridge-image" accept="image/*" required>
+                <button type="submit">AI 재료 분석 시작</button>
+            </form>
+            <div class="result-box">
+                <strong>💡 분석 예상 결과 (예시 메뉴 - 클릭해 보세요):</strong>
+                <p>인식된 재료: 계란, 대파, 양파</p>
+                <p style="margin-top: 10px;">
+                    <span class="recipe-link" onclick="loadRecipe(4)">계란말이 보기</span>
+                    <span class="recipe-link" onclick="loadRecipe(9)">계란볶음밥 보기</span>
+                    <span class="recipe-link" onclick="loadRecipe(11)">토마토달걀볶음 보기</span>
+                </p>
+            </div>
+        </section>
+
+        <section id="all-recipes" class="section">
+            <h2>📋 2. 마스터 레시피 전체 나열 (30종+)</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">원하는 요리를 클릭하면 <strong>[4. 레시피 상세 보기]</strong>에 요리법이 바로 로드됩니다.</p>
+            <div id="total-recipe-list"></div>
+        </section>
+
+        <section id="search-recipe" class="section">
+            <h2>🔍 3. 재료로 레시피 검색</h2>
+            <p>가지고 있는 재료를 입력해서 만들 수 있는 음식을 찾아보세요. (ex: 무, 계란, 두부 등)</p>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="search-input" placeholder="예) 무" onkeyup="if(window.event.keyCode==13){searchRecipe()}">
+                <button type="button" onclick="searchRecipe()">검색</button>
+            </div>
+            <div id="search-result" class="result-box">
+                검색어를 입력하고 버튼을 눌러보세요. 30가지 마스터 레시피에서 찾아줍니다!
+            </div>
+        </section>
+
+        <section id="recipe-detail" class="section">
+            <h2>📖 4. 레시피 상세 보기</h2>
+            <div id="active-recipe-box" style="padding: 1rem; background: #fff; border-radius: 6px;">
+                <p style="color: #666; font-style: italic;">위의 전체 목록이나 검색창에서 요리를 클릭해 보세요. 상세 조리법이 여기에 열립니다.</p>
+            </div>
+
+            <div id="recipe-interaction-area" style="display:none;">
+                <div class="interaction-box">
+                    <div>
+                        <button type="button" class="btn-upvote" onclick="submitUpvote()">👍 이 레시피 추천하기</button>
+                    </div>
+                    <div style="border-left: 1px solid #ccc; padding-left: 15px;">
+                        <label for="star-rating" style="font-weight: bold; font-size: 0.9rem;">⭐ 별점 평가 남기기:</label>
+                        <select id="star-rating" style="width:auto; margin:0 0 0 10px; padding:4px;" onchange="submitRating(this.value)">
+                            <option value="">-- 선택 --</option>
+                            <option value="5">⭐⭐⭐⭐⭐ 5점 최고</option>
+                            <option value="4">⭐⭐⭐⭐ 4점 만족</option>
+                            <option value="3">⭐⭐⭐ 3점 보통</option>
+                            <option value="2">⭐⭐ 2점 별로</option>
+                            <option value="1">⭐ 1점 최악</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="detail-auth-notice" class="auth-notice" style="display: none;">
+                ⚠️ 로그인하시면 이 레시피에 대한 추천과 별점 평가에 참여하실 수 있습니다!
+            </div>
+
+            <hr style="border: 0; height: 1px; background: var(--border-color); margin: 2rem 0;">
+
+            <h3>💬 레시피 한줄 평 (댓글)</h3>
+            <form onsubmit="event.preventDefault(); addComment();">
+                <input type="text" id="comment-input" placeholder="레시피에 대한 후기나 팁을 남겨주세요!" required>
+                <button type="submit">댓글 등록</button>
+            </form>
+            <div id="comment-list" class="list-box">
+                <div class="comment"><strong>요리초보:</strong> 레시피대로 하니까 실패 안 하네요! 감사합니다.</div>
+                <div class="comment"><strong>집밥백선생:</strong> 간 맞추기 힘들 땐 액젓 살짝 넣는 것도 팁입니다.</div>
+            </div>
+        </section>
+
+        <section id="add-recipe" class="section">
+            <h2>📝 5. 나만의 레시피 직접 등록</h2>
+            <p>나만의 꿀조합 레시피가 있다면 직접 추가해 보세요! 등록 즉시 <strong>2번 전체 목록</strong>에 카드가 생성됩니다.</p>
+            
+            <div id="add-recipe-auth-notice" class="auth-notice">
+                🔒 나만의 레시피를 직접 등록하고 추천 점수를 획득하려면 상단에서 먼저 로그인을 진행해 주세요!
+            </div>
+
+            <form id="recipe-add-form" onsubmit="addNewRecipe(event)" style="display: none;">
+                <label for="new-category"><strong>카테고리 선택:</strong></label>
+                <select id="new-category">
+                    <option value="한식">한식</option>
+                    <option value="중식">중식</option>
+                    <option value="양식">양식</option>
+                    <option value="일식">일식</option>
+                    <option value="분식">분식</option>
+                    <option value="아시안">아시안</option>
+                    <option value="기타">기타</option>
+                </select>
+
+                <label for="new-name"><strong>요리 이름:</strong></label>
+                <input type="text" id="new-name" placeholder="예) 불닭계란말이" required>
+
+                <label for="new-ingredients"><strong>검색용 식재료 콤마(,) 구분:</strong></label>
+                <input type="text" id="new-ingredients" placeholder="예) 계란, 불닭소스, 대파" required>
+
+                <label for="new-info"><strong>상세 계량 안내:</strong></label>
+                <input type="text" id="new-info" placeholder="예) 계란 4개, 불닭소스 1T, 다진 대파 조금" required>
+
+                <label for="new-steps"><strong>조리 순서 (엔터로 줄바꿈해서 작성해주세요):</strong></label>
+                <textarea id="new-steps" rows="5" placeholder="1. 계란을 풀고 다진 대파를 섞는다.&#10;2. 팬에 계란물을 부은 뒤 소스를 가볍게 뿌린다.&#10;3. 돌돌 말아 완성한다." required></textarea>
+
+                <button type="submit">새 레시피 등록하기</button>
+            </form>
+        </section>
+
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; color: #666; font-size: 0.9rem;">
+        &copy; 2026 냉장고 파먹기 Recipe Book. All rights reserved.
+    </footer>
+
+    <script>
+        // 가상 회원 데이터베이스 초기값 (테스트용)
+        let usersDatabase = [
+            { id: "user1", nickname: "파먹기장인", pw: "1234" }
+        ];
+        
+        // 현재 로그인한 사용자 정보 (null이면 비회원 상태)
+        let currentUser = null; 
+        // 현재 상세조회 중인 레시피 ID 저장용
+        let currentActiveRecipeId = null; 
+
+        // 30가지 마스터 데이터베이스 (추천수 upvotes, 별점 총점 starSum, 참여 횟수 starCount, 작성자 author 필드 추가)
+        let recipeDatabase = [
+            { id: 1, category: "한식", name: "소고기 뭇국", ingredients: ["무", "소고기", "대파"], info: "무 1/3토막(200g), 소고기 국거리 100g, 대파 1/2대, 참기름 1T, 국간장 1.5T, 다진 마늘 0.5T, 물 800ml", steps: ["무는 사방 3cm 크기로 얇게 나박썰고, 대파는 송송 썬다. 소고기는 키친타월로 핏물을 뺀다.", "냄비에 참기름 1큰술을 두르고 소고기와 무를 넣어 고기 겉면이 익을 때까지 달달 볶는다.", "물 800ml를 붓고 센 불로 끓이다가, 끓어오르면 거품을 걷어내고 국간장, 다진 마늘, 대파를 넣어 중불에서 10분간 더 끓인다."], upvotes: 12, starSum: 23, starCount: 5, author: "운영자" },
+            { id: 2, category: "한식", name: "김치찌개", ingredients: ["김치", "신김치", "돼지고기", "두부", "대파"], info: "신김치 1/4포기, 돼지고기 150g, 두부 1/2모, 대파 1/2대, 고춧가루 1T, 국간장 1T, 다진 마늘 0.5T, 쌀뜨물 600ml", steps: ["신김치와 돼지고기, 두부는 먹기 좋은 크기로 썰고 대파는 어슷 썬다.", "냄비에 돼지고기와 김치를 넣고 김치가 반투명해질 때까지 볶다가 쌀뜨물 600ml를 붓고 끓인다.", "국물이 끓으면 고춧가루, 국간장, 다진 마늘을 넣고 약불로 줄여 15분간 푹 끓인 후 두부와 대파를 넣어 3분 더 끓인다."], upvotes: 45, starSum: 49, starCount: 10, author: "운영자" },
+            { id: 3, category: "한식", name: "진한 된장찌개", ingredients: ["두부", "애호박", "감자", "양파", "대파"], info: "두부 1/2모, 애호박 1/3개, 감자 1/2개, 양파 1/4개, 된장 2T, 다진 마늘 0.5T, 멸치육수 500ml", steps: ["감자, 애호박, 양파, 두부는 사각 모양으로 한입 크기(2cm)로 썬다.", "육수 500ml에 된장 2큰술을 잘 풀어준 뒤, 딱딱한 감자와 양파를 먼저 넣고 센 불로 끓인다.", "한소끔 끓으면 애호박과 다진 마늘을 넣고 5분간 끓이다가, 마지막에 두부를 넣고 2분간 더 끓여 마무리한다."], upvotes: 28, starSum: 32, starCount: 7, author: "운영자" },
+            { id: 4, category: "한식", name: "계란말이", ingredients: ["계란", "달걀", "대파", "당근"], info: "계란 4개, 대파 1/4대, 당근 1/8개, 소금 2꼬집, 식용유", steps: ["대파와 당근은 아주 잘게 다지고, 볼에 계란 4개, 소금 2꼬집과 함께 넣어 잘 풀어준다.", "팬에 식용유를 두르고 키친타월로 살짝 닦아낸 뒤, 약불에서 계란물의 1/3을 얇게 편다.", "윗면이 살짝 익기 시작하면 끝에서부터 돌돌 말고, 빈 공간에 남은 계란물을 이어 부어가며 두툼하게 모양을 잡아가며 굽는다."], upvotes: 19, starSum: 20, starCount: 4, author: "운영자" },
+            { id: 5, category: "한식", name: "제육볶음", ingredients: ["돼지고기", "양파", "대파"], info: "돼지고기 앞다리살 300g, 양파 1/2개, 대파 1/2대, 고추장 1.5T, 고춧가루 1T, 진간장 1.5T, 설탕 1T, 다진 마늘 1T", steps: ["양념 재료를 섞어 고기에 조물조물 버무려 20분간 재워둔다. 양파와 대파는 굵게 채 썬다.", "달군 팬에 기름을 두르지 않고 재워둔 고기를 올려 센 불에서 볶기 시작한다.", "고기가 70% 정도 익으면 양파를 넣고 같이 볶다가, 마지막에 대파를 넣고 숨이 죽을 때까지 빠르게 볶아낸다."], upvotes: 52, starSum: 55, starCount: 11, author: "운영자" },
+            { id: 6, category: "한식", name: "무생채", ingredients: ["무", "고춧가루"], info: "무 1/3토막(300g), 고춧가루 2T, 식초 1.5T, 설탕 1T, 액젓 1T, 다진 마늘 0.5T, 꽃소금 0.5T", steps: ["무는 일정한 두께로 얇게 채 썰어 준비한다.", "채 썬 무에 고춧가루 2큰술을 먼저 넣고 빡빡 버무려 무에 붉은 고춧가루 색을 붉게 입힌다.", "색이 예쁘게 나면 식초, 설탕, 액젓, 다진 마늘, 소금을 넣고 조물조물 무친 뒤 완성한다."], upvotes: 8, starSum: 15, starCount: 4, author: "운영자" },
+            { id: 7, category: "한식", name: "오징어볶음", ingredients: ["오징어", "양파", "당근", "대파"], info: "오징어 1마리, 양파 1/2개, 당근 1/4개, 대파 1/2대, 고추장 1T, 고춧가루 2T, 진간장 2T, 설탕 1T", steps: ["오징어는 안쪽에 칼집을 내어 한입 크기로 썰고, 야채들도 먹기 좋은 크기로 길쭉하게 썬다.", "팬에 식용유를 두르고 마늘과 양파, 당근을 먼저 볶아 향을 낸다.", "야채가 살짝 익으면 오징어와 분량의 양념장을 한 번에 넣고, 센 불에서 3분 이내로 빠르게 볶아낸다."], upvotes: 31, starSum: 36, starCount: 8, author: "운영자" },
+            { id: 8, category: "한식", name: "떡국", ingredients: ["떡", "떡국떡", "계란", "달걀", "대파"], info: "떡국떡 2컵, 사골곰탕 육수 500ml, 계란 1개, 대파 1/3대, 국간장 0.5T, 김가루", steps: ["떡국떡은 찬물에 10분간 담가 불려두고, 계란은 풀어둔다. 대파는 송송 썬다.", "냄비에 사골 육수 500ml를 붓고 끓으면 불려둔 떡을 넣는다. 국간장으로 부족한 간을 맞춘다.", "떡기 위로 둥둥 떠오르면 대파를 넣고 계란물을 원을 그리듯 풀어 넣은 뒤, 30초 후 불을 끈다."], upvotes: 22, starSum: 25, starCount: 6, author: "운영자" },
+            { id: 9, category: "중식", name: "계란볶음밥", ingredients: ["밥", "찬밥", "계란", "달걀", "대파"], info: "찬밥 1공기, 계란 2개, 대파 1/2대, 굴소스 0.5T, 진간장 0.5T, 식용유 3T", steps: ["대파는 잘게 다지듯 썰고, 계란은 미리 그릇에 풀어둔다.", "팬에 식용유 3큰술과 대파를 넣고 볶다 파 향이 나면 계란을 부어 스크램블한다.", "찬밥 1공기, 굴소스, 간장을 넣은 뒤 주걱으로 섞어준 후, 센 불로 올려 1분간 고슬고슬하게 볶는다."], upvotes: 60, starSum: 68, starCount: 14, author: "운영자" },
+            { id: 10, category: "중식", name: "마파두부", ingredients: ["두부", "돼지고기", "다진고기", "대파"], info: "두부 1모, 다진 돼지고기 80g, 대파 1/2대, 두반장 1.5T, 굴소스 0.5T, 고춧가루 1T, 물 1컵, 전분물 2T", steps: ["두부는 주사위 모양으로 썰고 대파는 다진다. 팬에 기름을 두르고 대파와 고춧가루를 볶아 고추기름을 낸다.", "다진 돼지고기를 넣어 볶다가 고기가 익으면 두반장, 굴소스, 설탕, 물 1컵을 넣고 끓인다.", "소스가 끓으면 두부를 넣고 3분간 졸인 뒤, 전분물을 조금씩 나누어 넣으며 걸쭉하게 농도를 맞춘다."], upvotes: 17, starSum: 18, starCount: 4, author: "운영자" },
+            { id: 11, category: "중식", name: "토마토달걀볶음", ingredients: ["토마토", "계란", "달걀", "대파"], info: "토마토 1개, 계란 2개, 대파 1/4대, 굴소스 0.5T, 소금, 식용유", steps: ["토마토는 웨지 모양으로 썰고, 계란은 풀고 대파는 송송 썬다.", "팬에 기름을 두르고 계란물을 부어 부드러운 스크램블 에그를 만든 뒤 그릇에 따로 덜어둔다.", "팬에 대파와 토마토를 볶다가 토마토가 부드러워지면 굴소스 간을 한 뒤, 계란을 넣어 가볍게 섞는다."], upvotes: 35, starSum: 40, starCount: 8, author: "운영자" },
+            { id: 12, category: "중식", name: "고추잡채", ingredients: ["피망", "양파", "돼지고기"], info: "피망 2개, 양파 1/2개, 돼지고기 잡채용 100g, 고추기름 2T, 굴소스 1.5T, 전분가루 0.5T", steps: ["피망과 양파는 가늘게 채 썰고, 돼지고기는 전분가루 0.5큰술과 맛술 약간에 버무려둔다.", "팬에 고추기름 2큰술과 다진 마늘을 넣고 볶다가 밑간한 돼지고기를 넣어 익힌다.", "채 썬 양파와 피망, 굴소스를 넣고 센 불에서 야채의 아삭함이 살도록 2분간 빠르게 볶는다."], upvotes: 14, starSum: 15, starCount: 3, author: "운영자" },
+            { id: 13, category: "중식", name: "탕수만두", ingredients: ["만두", "냉동만두", "양파", "오이"], info: "냉동만두 10개, 양파 1/4개, 오이 1/4개, 물 1/2컵, 간장 1.5T, 식초 2T, 설탕 3T, 전분물 1.5T", steps: ["냉동만두는 팬에 기름을 넉넉히 두르고 앞뒤로 노릇하고 바삭하게 튀겨내듯 구워준다.", "냄비에 물 1/2컵, 간장, 식초, 설탕과 썰어둔 양파, 오이를 넣고 소스가 끓어오를 때까지 가열한다.", "야채가 살짝 익으면 전분물을 부어 탕수 소스를 걸쭉하게 만든 뒤, 구워진 만두 위에 부어준다."], upvotes: 21, starSum: 22, starCount: 5, author: "운영자" },
+            { id: 14, category: "중식", name: "짜장라면", ingredients: ["라면", "짜장라면", "양파", "돼지고기", "베이컨"], info: "짜장라면 1봉지, 양파 1/2개, 돼지고기 약간, 대파 1/4대, 식용유 1T", steps: ["냄비에 물을 끓여 라면 면과 건더기를 평소보다 1분 덜 삶아 건진다. 면수는 1컵 남겨둔다.", "팬에 기름을 두르고 다진 파, 채 썬 양파, 고기를 달달 볶아 양파가 흐물해질 때까지 익힌다.", "삶은 면과 짜장 분말 스프, 남겨둔 면수 1/2컵을 팬에 붓고 센 불에서 1분간 졸이듯 볶아낸다."], upvotes: 40, starSum: 42, starCount: 9, author: "운영자" },
+            { id: 15, category: "양식", name: "알리오 올리오", ingredients: ["파스타", "파스타면", "마늘", "페페론치노"], info: "파스타면 1인분, 통마늘 6쪽, 페페론치노 3~4개, 올리브유 5T, 소금, 면수 0.5컵", steps: ["소금물에 파스타면을 7분간 삶는다. 마늘은 편 썰고 페페론치노는 으깨어둔다.", "팬에 올리브유 5큰술 and 편마늘을 넣고 아주 약한 불에서 마늘이 노릇해질 때까지 볶는다.", "페페론치노를 넣고 30초 볶다가 삶은 면과 면수 0.5컵을 넣고, 기름과 물이 잘 섞이도록 센 불에서 볶는다."], upvotes: 48, starSum: 50, starCount: 10, author: "운영자" },
+            { id: 16, category: "양식", name: "토마토 파스타", ingredients: ["파스타", "파스타면", "토마토소스", "양파", "베이컨"], info: "파스타면 1인분, 시판 토마토소스 1컵, 양파 1/4개, 베이컨 2줄, 올리브유 1T", steps: ["파스타면은 8분간 삶아 건져두고, 양파와 베이컨은 잘게 썬다.", "팬에 올리브유를 두르고 다진 마늘과 양파, 베이컨을 넣어 양파가 투명해질 때까지 볶는다.", "토마토소스와 삶은 면을 넣고 소스가 면에 잘 묻어나도록 중불에서 1~2분간 함께 볶는다."], upvotes: 29, starSum: 30, starCount: 7, author: "운영자" },
+            { id: 17, category: "양식", name: "크림 리조또", ingredients: ["밥", "찬밥", "우유", "생크림", "베이컨", "양파"], info: "찬밥 1공기, 우유 200ml, 베이컨 2줄, 양파 1/4개, 슬라이스 치즈 1장, 버터 10g", steps: ["양파와 베이컨은 잘게 다지듯 썬다.", "팬에 버터 10g을 녹이고 양파와 베이컨을 볶은 뒤, 찬밥 1공기를 넣어 가볍게 볶는다.", "우유 200ml를 붓고 저어가며 졸이다가, 치즈 1장을 넣고 소금, 후추로 간을 맞춰 걸쭉해지면 불을 끈다."], upvotes: 33, starSum: 35, starCount: 8, author: "운영자" },
+            { id: 18, category: "양식", name: "감바스 알 아히요", ingredients: ["새우", "마늘", "올리브유", "페페론치노"], info: "새우 10마리, 통마늘 10쪽, 페페론치노 4개, 올리브유 1컵(200ml), 소금, 후추", steps: ["새우는 물기를 완전히 제거하고 소금, 후추로 밑간을 해둔다. 마늘은 편 썰어둔다.", "팬에 올리브유 1컵과 편마늘을 넣고 중약불에서 마늘 표면에 기포가 생기며 노릇해질 때까지 끓인다.", "마늘 향이 퍼지면 페페론치노와 새우를 넣고 새우가 완전히 익을 때까지 3~4분간 더 끓인다."], upvotes: 50, starSum: 59, starCount: 12, author: "운영자" },
+            { id: 19, category: "양식", name: "프렌치 토스트", ingredients: ["식빵", "빵", "계란", "달걀", "우유"], info: "식빵 2장, 계란 2개, 우유 50ml, 설탕 1T, 버터 15g", steps: ["볼에 계란 2개, 우유 50ml, 설탕 1큰술을 넣고 멍울이 없도록 잘 풀어준다.", "식빵을 반으로 잘라 계란물에 앞뒤로 속까지 축축하게 잘 스며들도록 2~3분간 담가둔다.", "약불로 달군 팬에 버터를 녹이고 계란물 머금은 식빵을 올려 앞뒤로 노릇노릇하게 구워낸다."], upvotes: 24, starSum: 28, starCount: 6, author: "운영자" },
+            { id: 20, category: "양식", name: "콘치즈", ingredients: ["옥수수", "캔옥수수", "치즈", "모짜렐라치즈", "마요네즈"], info: "캔옥수수 1캔, 모짜렐라 치즈 1컵, 마요네즈 3T, 설탕 1T, 버터 10g", steps: ["캔옥수수는 채반에 받쳐 물기를 완전히 빼준다.", "볼에 물기 뺀 옥수수, 마요네즈 3큰술, 설탕 1큰술, 소금 1꼬집을 넣고 골고루 버무린다.", "팬에 버터를 녹인 뒤 옥수수를 깔고, 그 위에 치즈를 듬뿍 얹어 뚜껑을 덮고 약불에서 녹여준다."], upvotes: 55, starSum: 58, starCount: 12, author: "운영자" },
+            { id: 21, category: "일식", name: "규동 (소고기덮밥)", ingredients: ["소고기", "양파", "계란", "달걀"], info: "소고기 불고기용 120g, 양파 1/2개, 대파 1/4대, 계란 노른자 1개, 간장 2T, 맛술 2T, 설탕 1T, 물 100ml", steps: ["양파는 채 썰고 대파는 어슷 썬다. 냄비에 간장, 맛술, 설탕, 물을 넣고 먼저 끓인다.", "소스가 끓어오르면 채 썬 양파를 넣고 졸이다가, 소고기를 한 장씩 떼어 넣으며 익힌다.", "고기가 익고 소스가 자작해지면 대파를 넣고 불을 끈 뒤, 밥 위에 소스와 고기를 얹고 계란 노른자를 올린다."], upvotes: 19, starSum: 20, starCount: 5, author: "운영자" },
+            { id: 22, category: "일식", name: "가츠동 (돈까스덮밥)", ingredients: ["돈까스", "양파", "계란", "달걀", "대파"], info: "돈까스 1장, 양파 1/2개, 계란 1개, 대파 1/4대, 쯔유 3T, 물 100ml", steps: ["돈까스는 구워서 썰어둔다. 양파는 채 썰고 계란은 가볍게 풀어둔다.", "작은 팬에 물 100ml와 쯔유, 양파를 넣고 양파가 흐물해질 때까지 끓인다.", "양파 위에 돈까스를 올린 뒤 주변에 계란물을 두르고, 뚜껑을 닫아 반숙으로 익으면 밥 위에 얹는다."], upvotes: 23, starSum: 25, starCount: 6, author: "운영자" },
+            { id: 23, category: "일식", name: "오코노미야끼", ingredients: ["양배추", "베이컨", "부침가루", "계란"], info: "양배추 2장, 베이컨 2줄, 부침가루 1/2컵, 물 1/3컵, 계란 1개, 소스", steps: ["양배추는 채 썰고, 부침가루, 물, 계란 1개를 섞은 반죽에 양배추를 넣어 잘 버무린다.", "달군 팬에 기름을 두르고 반죽을 두툼하게 편 뒤 베이컨을 올리고 약중불에서 굽는다.", "뒤집어서 바삭하게 구워지면 접시에 담고, 돈까스소스와 마요네즈, 가쓰오부시를 올린다."], upvotes: 15, starSum: 15, starCount: 4, author: "운영자" },
+            { id: 24, category: "일식", name: "야끼우동", ingredients: ["우동", "우동면", "양배추", "양파", "베이컨", "삼겹살"], info: "우동면 1개, 베이컨 50g, 양배추 1장, 양파 1/4개, 굴소스 1.5T, 진간장 0.5T", steps: ["우동면은 끓는 물에 1분간 삶아 건져두고, 야채와 고기는 채 썬다.", "팬에 고기를 먼저 볶아 기름을 내고, 양파와 양배추를 넣어 숨이 죽을 때까지 센 불에서 달달 볶는다.", "우동면과 분량의 양념을 넣고 양념이 면에 골고루 배도록 2분간 빠르게 볶아낸다."], upvotes: 18, starSum: 20, starCount: 5, author: "운영자" },
+            { id: 25, category: "일식", name: "밀푀유나베", ingredients: ["배추", "알배기배추", "깻잎", "소고기", "숙주"], info: "알배기배추 10장, 깻잎 20장, 소고기 샤브용 200g, 숙주 1봉지, 쯔유 3T, 물 800ml", steps: ["배추 -> 깻잎 2장 -> 소고기 순으로 쌓은 뒤, 냄비 높이에 맞춰 3~4등분으로 썬다.", "냄비 바닥에 숙주나물을 깔고, 썰어둔 배추·고기를 가장자리부터 촘촘하게 채워 넣는다.", "물 800ml에 쯔유 3큰술을 섞은 육수를 붓고 소고기가 익을 때까지 보글보글 끓여낸다."], upvotes: 42, starSum: 48, starCount: 10, author: "운영자" },
+            { id: 26, category: "분식", name: "떡볶이", ingredients: ["떡", "어묵", "대파", "고추장"], info: "떡볶이 떡 2컵, 사각어묵 2장, 대파 1/2대, 물 500ml, 고추장 2T, 고춧가루 1T, 설탕 2T", steps: ["떡은 씻어두고 어묵은 썰고 대파는 길쭉하게 썬다.", "냄비에 물 500ml를 붓고 고추장, 고춧가루, 설탕, 간장을 잘 풀어준 뒤 먼저 끓인다.", "국물이 끓으면 떡과 어묵을 넣고 국물이 걸쭉해질 때까지 7~8분간 졸이다가 대파를 넣는다."], upvotes: 58, starSum: 62, starCount: 13, author: "운영자" },
+            { id: 27, category: "분식", name: "라볶이", ingredients: ["라면", "라면사리", "떡", "어묵", "대파"], info: "라면사리 1개, 떡볶이 떡 1컵, 어묵 1장, 고추장 1.5T, 설탕 1.5T, 라면스프 0.3T, 물 500ml", steps: ["냄비에 물 500ml와 고추장, 설탕, 간장, 라면 스프 0.3큰술을 넣어 한소끔 끓인다.", "국물이 끓으면 떡과 어묵을 먼저 넣어 2분간 끓여 떡을 말랑하게 만든다.", "라면 사리와 대파를 넣고, 국물이 면발에 쏙 배어들고 면이 알맞게 익을 때까지 끓여낸다."], upvotes: 37, starSum: 39, starCount: 9, author: "운영자" },
+            { id: 28, category: "분식", name: "바삭 김치전", ingredients: ["김치", "신김치", "부침가루"], info: "신김치 1컵, 부침가루 1컵, 찬물 2/3컵, 김치국물 3T, 설탕 0.3T", steps: ["신김치는 송송 썰고, 신맛을 잡기 위해 설탕 0.3큰술을 넣어 가볍게 버무려둔다.", "볼에 부침가루 1컵, 찬물 2/3컵, 김치국물 3큰술을 섞어 반죽을 만든 뒤 김치를 섞는다.", "팬에 식용유를 아주 넉넉히 두르고 반죽을 얇게 펴서 앞뒤로 튀기듯 강한 불에서 굽는다."], upvotes: 44, starSum: 47, starCount: 10, author: "운영자" },
+            { id: 29, category: "아시안", name: "나시고랭", ingredients: ["밥", "찬밥", "새우", "숙주", "굴소스"], info: "찬밥 1공기, 칵테일 새우 6마리, 숙주 1줌, 굴소스 1T, 진간장 0.5T, 액젓 0.5T, 계란 1개", steps: ["팬에 기름을 두르고 다진 마늘과 고기, 새우를 넣어 노릇하게 볶는다.", "찬밥 1공기와 분량의 양념(굴소스, 간장, 액젓, 설탕)을 한데 넣고 센 불에서 볶아준다.", "불을 끄기 직전 숙주나물을 넣고 잔열로 10초간 섞은 후 계란 프라이를 올려 낸다."], upvotes: 16, starSum: 20, starCount: 5, author: "운영자" },
+            { id: 30, category: "아시안", name: "월남쌈", ingredients: ["라이스페이퍼", "파프리카", "오이", "당근", "깻잎", "고기"], info: "라이스페이퍼 10장, 파프리카 1/2개, 오이 1/3개, 당근 1/4개, 남은 고기 100g, 소스", steps: ["파프리카, 오이, 당근, 깻잎 등 냉장고에 남은 야채들을 최대한 가늘고 곱게 채 썬다.", "메인이 될 고기 재료를 팬에 구워 기름을 빼고 준비한다.", "따뜻한 물에 라이스페이퍼를 적셨다 뺀 뒤 야채들과 고기를 골고루 올려 말아 소스에 찍어 먹는다."], upvotes: 27, starSum: 30, starCount: 6, author: "운영자" }
+        ];
+
+        // 초기 화면 세팅
+        window.onload = function() {
+            renderAllRecipes();
+            updateAuthUI();
+        };
+
+        // 🔐 [인증 로직] 회원가입 처리
+        function handleSignup(event) {
+            event.preventDefault();
+            const id = document.getElementById('join-id').value.trim();
+            const nick = document.getElementById('join-nickname').value.trim();
+            const pw = document.getElementById('join-pw').value;
+
+            if(usersDatabase.some(user => user.id === id)) {
+                alert("이미 존재하는 아이디입니다.");
+                return;
+            }
+
+            usersDatabase.push({ id: id, nickname: nick, pw: pw });
+            alert(`회원가입 완료! '${nick}'님, 이제 로그인해 주세요.`);
+            event.target.reset();
+        }
+
+        // 🔐 [인증 로직] 로그인 처리
+        function handleLogin(event) {
+            event.preventDefault();
+            const id = document.getElementById('login-id').value.trim();
+            const pw = document.getElementById('login-pw').value;
+
+            const user = usersDatabase.find(u => u.id === id && u.pw === pw);
+
+            if(user) {
+                currentUser = user;
+                alert(`환영합니다, ${user.nickname}님! 모든 권한이 활성화되었습니다.`);
+                updateAuthUI();
+                renderAllRecipes(); // 목록의 별점과 추천 갱신을 위해 재출력
+                if(currentActiveRecipeId) loadRecipe(currentActiveRecipeId); // 상세창 권한 갱신
+            } else {
+                alert("아이디 또는 비밀번호가 틀렸습니다.");
+            }
+        }
+
+        // 🔐 [인증 로직] 로그아웃 처리
+        function handleLogout() {
+            currentUser = null;
+            alert("로그아웃 되었습니다. 비회원 모드로 전환합니다.");
+            updateAuthUI();
+            renderAllRecipes();
+            if(currentActiveRecipeId) loadRecipe(currentActiveRecipeId);
+        }
+
+        // UI에 동적으로 회원 상태 반영
+        function updateAuthUI() {
+            const topBar = document.getElementById('top-auth-bar');
+            const formContainer = document.getElementById('auth-forms-container');
+            const welcomeContainer = document.getElementById('auth-welcome-container');
+            const addNotice = document.getElementById('add-recipe-auth-notice');
+            const addForm = document.getElementById('recipe-add-form');
+
+            if (currentUser) {
+                // 1. 상단 바 반영
+                topBar.innerHTML = `🟢 <strong>${currentUser.nickname}</strong>님 로그인 중 <button onclick="handleLogout()">로그아웃</button>`;
+                // 2. 회원공간 세션 반영
+                formContainer.style.display = 'none';
+                welcomeContainer.style.display = 'block';
+                welcomeContainer.innerHTML = `
+                    <div style="text-align:center; padding: 1rem; border:2px dashed var(--primary-color); border-radius:6px;">
+                        <h3>🎉 로그인 인증 성공!</h3>
+                        <p><strong>${currentUser.nickname} (${currentUser.id})</strong> 계정으로 접속 중입니다.</p>
+                        <p>현재 5번 레시피 등록 락(Lock) 해제 및 추천/별점 평가 권한을 획득하셨습니다.</p>
+                        <button onclick="handleLogout()" style="background-color:#777;">로그아웃 하기</button>
+                    </div>
+                `;
+                // 3. 5번 레시피 등록 권한 해제
+                addNotice.style.display = 'none';
+                addForm.style.display = 'block';
+            } else {
+                // 비회원 상태
+                topBar.innerHTML = `⚪ 현재 비회원 상태 (조회만 가능)`;
+                formContainer.style.display = 'block';
+                welcomeContainer.style.display = 'none';
+                addNotice.style.display = 'block';
+                addForm.style.display = 'none';
+            }
+        }
+
+        // 2번 메뉴: 전체 레시피 렌더링 (평균 별점과 추천 수 표시 기능 포함)
+        function renderAllRecipes() {
+            const listDiv = document.getElementById('total-recipe-list');
+            if(!listDiv) return;
+
+            const categories = [...new Set(recipeDatabase.map(r => r.category))];
+            let htmlContent = '';
+
+            categories.forEach(category => {
+                htmlContent += `<div class="category-block">`;
+                htmlContent += `<div class="category-title">${category}</div>`;
+                htmlContent += `<div class="recipe-grid">`;
+                
+                const catRecipes = recipeDatabase.filter(r => r.category === category);
+                catRecipes.forEach(recipe => {
+                    // 평균 평점 계산
+                    const avg = recipe.starCount > 0 ? (recipe.starSum / recipe.starCount).toFixed(1) : "0.0";
+                    htmlContent += `
+                        <span class="recipe-link" onclick="loadRecipe(${recipe.id})">
+                            ${recipe.name}
+                            <span class="recipe-metric">👍${recipe.upvotes} ⭐${avg}</span>
+                        </span>`;
+                });
+
+                htmlContent += `</div></div>`;
+            });
+            
+            listDiv.innerHTML = htmlContent;
+        }
+
+        // 3번 메뉴: 검색 엔진 함수
+        function searchRecipe() {
+            const searchInput = document.getElementById('search-input');
+            const keyword = searchInput.value.trim();
+            const resultBox = document.getElementById('search-result');
+            
+            if (keyword === '') {
+                resultBox.innerHTML = '재료를 입력해 주세요!';
+                return;
+            }
+
+            const matchedRecipes = recipeDatabase.filter(recipe => {
+                const hasIngredient = recipe.ingredients.some(ing => ing.includes(keyword));
+                const hasName = recipe.name.includes(keyword);
+                return hasIngredient || hasName;
+            });
+
+            if (matchedRecipes.length > 0) {
+                let htmlContent = `<strong>'${keyword}' 검색 결과 (${matchedRecipes.length}건):</strong><br><p style='font-size:0.8rem; color:#666; margin-bottom:10px;'>원하는 메뉴를 클릭하면 아래 상세 창에 조리법이 즉시 나타납니다.</p>`;
+                matchedRecipes.forEach(recipe => {
+                    const avg = recipe.starCount > 0 ? (recipe.starSum / recipe.starCount).toFixed(1) : "0.0";
+                    htmlContent += `<span class="recipe-link" onclick="loadRecipe(${recipe.id})">[${recipe.category}] ${recipe.name} <span style="font-size:0.75rem; color:#777;">(👍${recipe.upvotes} ⭐${avg})</span></span>`;
+                });
+                resultBox.innerHTML = htmlContent;
+            } else {
+                resultBox.innerHTML = `<strong>'${keyword}'</strong>에 대한 레시피가 아직 없습니다. 다른 재료를 검색해 보세요!`;
+            }
+        }
+
+        // 4번 메뉴: 특정 레시피 정보를 로드해주는 함수
+        function loadRecipe(id) {
+            const recipe = recipeDatabase.find(r => r.id === id);
+            const detailBox = document.getElementById('active-recipe-box');
+            
+            if (!recipe) return;
+            currentActiveRecipeId = id; // 전역변수에 보관
+
+            const avg = recipe.starCount > 0 ? (recipe.starSum / recipe.starCount).toFixed(1) : "0.0";
+
+            let stepsHtml = '<ol style="padding-left:20px; margin-top:10px;">';
+            recipe.steps.forEach(step => {
+                stepsHtml += `<li style="margin-bottom:8px;">${step}</li>`;
+            });
+            stepsHtml += '</ol>';
+
+            detailBox.innerHTML = `
+                <div style="border: 2px solid var(--primary-color); padding: 1.5rem; border-radius: 6px; background: #fff;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                        <h3 style="color: var(--primary-color); margin: 0; font-size:1.4rem;">[${recipe.category}] ${recipe.name}</h3>
+                        <span style="font-size:0.9rem; color:#666;">✍️ 작성자: <strong>${recipe.author || '익명'}</strong></span>
+                    </div>
+                    <div style="margin: 0.5rem 0 1rem 0; font-size:0.9rem; color:#444; background:#f0f7f0; padding:4px 8px; border-radius:4px; display:inline-block;">
+                        📊 실시간 반응 통계 — <b>추천 수:</b> <span id="detail-upvotes">${recipe.upvotes}</span>개 | <b>평균 별점:</b> ⭐<span id="detail-stars">${avg}</span> (${recipe.starCount}명 참여)
+                    </div>
+                    <p style="margin-bottom:1rem;"><strong>🛒 필요 계량 및 재료:</strong> ${recipe.info}</p>
+                    <h4 style="margin: 0; border-top: 1px dashed #ccc; padding-top: 1rem;">🍳 조리 순서:</h4>
+                    ${stepsHtml}
+                </div>
+            `;
+
+            // 로그인 상태 체크하여 상호작용 박스(추천/별점 버튼) 활성화 제어
+            const interArea = document.getElementById('recipe-interaction-area');
+            const detailNotice = document.getElementById('detail-auth-notice');
+            document.getElementById('star-rating').value = ""; // 별점 선택 창 초기화
+
+            if (currentUser) {
+                interArea.style.display = 'block';
+                detailNotice.style.display = 'none';
+            } else {
+                interArea.style.display = 'none';
+                detailNotice.style.display = 'block';
+            }
+
+            // 스크롤 이동
+            const targetSection = document.getElementById('recipe-detail');
+            if (targetSection) {
+                const targetOffsetTop = targetSection.getBoundingClientRect().top + window.pageYOffset - 60;
+                window.scrollTo({ top: targetOffsetTop, behavior: 'smooth' });
+            }
+        }
+
+        // 👍 [상호작용] 추천 반영 함수
+        function submitUpvote() {
+            if(!currentUser) {
+                alert("로그인이 필요한 서비스입니다.");
+                return;
+            }
+            const recipe = recipeDatabase.find(r => r.id === currentActiveRecipeId);
+            if(recipe) {
+                recipe.upvotes += 1;
+                document.getElementById('detail-upvotes').innerText = recipe.upvotes;
+                alert(`'${recipe.name}' 레시피를 추천하셨습니다! 작성자 분께 큰 점수가 전달됩니다.`);
+                renderAllRecipes(); // 메인 리스트 수치 동기화
+            }
+        }
+
+        // ⭐ [상호작용] 별점 반영 함수
+        function submitRating(val) {
+            if(!val) return;
+            if(!currentUser) {
+                alert("로그인이 필요한 서비스입니다.");
+                return;
+            }
+            const recipe = recipeDatabase.find(r => r.id === currentActiveRecipeId);
+            if(recipe) {
+                const score = parseInt(val);
+                recipe.starSum += score;
+                recipe.starCount += 1;
+                
+                const newAvg = (recipe.starSum / recipe.starCount).toFixed(1);
+                document.getElementById('detail-stars').innerText = newAvg;
+                alert(`${score}점을 부여하셨습니다! (현재 평균: ⭐${newAvg})`);
+                renderAllRecipes(); // 메인 리스트 평점 동기화
+            }
+        }
+
+        // 5번 메뉴: 나만의 레시피 직접 등록 (작성자 자동 저장 기능 추가)
+        function addNewRecipe(event) {
+            event.preventDefault(); 
+
+            if(!currentUser) {
+                alert("레시피 등록을 진행하려면 먼저 로그인을 완료해야 합니다.");
+                return;
+            }
+
+            const category = document.getElementById('new-category').value;
+            const name = document.getElementById('new-name').value;
+            const ingredientsStr = document.getElementById('new-ingredients').value;
+            const info = document.getElementById('new-info').value;
+            const stepsStr = document.getElementById('new-steps').value;
+
+            const ingredients = ingredientsStr.split(',').map(item => item.trim());
+            const steps = stepsStr.split('\n').filter(step => step.trim() !== '');
+
+            const newId = recipeDatabase.length > 0 ? Math.max(...recipeDatabase.map(r => r.id)) + 1 : 1;
+            
+            const newRecipe = {
+                id: newId,
+                category: category,
+                name: name,
+                ingredients: ingredients,
+                info: info,
+                steps: steps,
+                upvotes: 0,       // 신규 레시피 추천 0개로 시작
+                starSum: 0,       // 별점 합계 초기화
+                starCount: 0,     // 평가 참여자 수 초기화
+                author: currentUser.nickname // ⭐ 현재 로그인한 유저의 닉네임으로 작성자 저장!
+            };
+
+            recipeDatabase.push(newRecipe);
+            renderAllRecipes();
+
+            alert(`'${name}' 레시피가 등록되었습니다!\n작성자: ${currentUser.nickname}님 이름으로 점수 집계가 시작됩니다.`);
+            event.target.reset(); 
+
+            document.getElementById('all-recipes').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 한줄평 댓글 추가 함수
+        function addComment() {
+            const input = document.getElementById('comment-input');
+            const list = document.getElementById('comment-list');
+            
+            if(input.value.trim() === '') return;
+
+            const commenterName = currentUser ? currentUser.nickname : "비회원";
+
+            const newComment = document.createElement('div');
+            newComment.className = 'comment';
+            newComment.innerHTML = `<strong>${commenterName}:</strong> ${input.value}`;
+            
+            list.insertBefore(newComment, list.firstChild);
+            input.value = '';
+        }
+    </script>
+</body>
+</html>
